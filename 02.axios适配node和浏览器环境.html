@@ -1,0 +1,135 @@
+<!doctype html>
+<html>
+
+<head>
+    <title>05.axios取消请求</title>
+
+</head>
+<script src="./dist/axios.js"></script>
+
+<body>
+
+    <div>
+
+    </div>
+
+</body>
+<script>
+    // 在这个环境下运行，会自动选择xhrAdapter
+    const isHttpAdapterSupported = typeof process !== 'undefined' && Object.prototype.toString.call(process).slice(8, -1)
+    const httpAdapter = isHttpAdapterSupported && function httpAdapter() {
+        console.log('httpAdapter')
+    }
+
+    const isXHRAdapterSupported = typeof XMLHttpRequest !== 'undefined';
+    const xhrAdapter = isXHRAdapterSupported && function (config) {
+        console.log('xhrAdapter')
+    }
+
+    const isFetchSupported = typeof fetch === 'function' && typeof Request === 'function' && typeof Response === 'function';
+    const fetchAdapter = isFetchSupported && function (config) {
+        console.log('fetchAdapter')
+    }
+
+
+    const knownAdapters = {
+        http: httpAdapter,
+        xhr: xhrAdapter,
+        fetch: fetchAdapter
+    }
+
+    function getAdapter(adapters) {
+        adapters = Array.isArray(adapters) ? adapters : [adapters];
+
+        const { length } = adapters;
+        let adapter = null;
+        for (let i = 0; i < length; i++) {
+            nameOrAdapter = adapters[i];
+
+            adapter = nameOrAdapter;
+
+            if (adapter !== null && adapter !== false && typeof adapter !== 'function') {
+                adapter = knownAdapters[String(nameOrAdapter).toLowerCase()];
+
+                if (adapter === undefined) {
+                    throw new AxiosError(`Unknown adapter '${id}'`);
+                }
+            }
+
+            if (adapter) {
+                break;
+            }
+        }
+        return adapter
+    }
+
+    function mergeConfig(_defaults, config) {
+        Object.keys(config).forEach(key => {
+            _defaults[key] = config[key]
+        })
+        return _defaults
+    }
+
+    class Axios {
+        constructor(config) {
+            this._defaults = config
+        }
+
+        request(configOrUrl, config) {
+            return this.dispatchRequest(configOrUrl, config)
+        }
+
+        dispatchRequest(configOrUrl, config) {
+            if (typeof configOrUrl === 'string') {
+                config = config || {};
+                config.url = configOrUrl;
+            } else {
+                config = configOrUrl || {};
+            }
+
+            config = mergeConfig(this._defaults, config);
+
+            const adapter = getAdapter(config.adapter)
+            return adapter(config)
+        }
+    };
+
+    ['get', 'delete', 'head', 'options'].forEach(methodName => {
+        Axios.prototype[methodName] = function (url, config) {
+
+            return this.request(mergeConfig(config || {}, { method: methodName, url }))
+        }
+    });
+
+    ['post', 'put', 'patch'].forEach(methodName => {
+        Axios.prototype[methodName] = function (url, data, config) {
+            return this.request(mergeConfig(config || {}, { method: methodName, url, data }))
+        }
+    });
+
+
+    function createAxiosInstance(config) {
+        const context = new Axios(config)
+        const instance = Axios.prototype.request.bind(context)
+
+        // Object.getOwnPropertyNames(Axios.prototype) 与 Obeject.keys区别
+        Object.getOwnPropertyNames(Axios.prototype).forEach(key => {
+
+            instance[key] = Axios.prototype[key].bind(context)
+        })
+
+        return instance
+    }
+
+    const InitConfig = {
+        method: 'get',
+        'content-type': 'application/json',
+        adapter: ['xhr', 'http', 'fetch']
+    }
+    const axios = createAxiosInstance(InitConfig)
+    axios.get('http://locahost:3000')
+
+
+</script>
+
+</html>

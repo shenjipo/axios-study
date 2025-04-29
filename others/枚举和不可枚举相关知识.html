@@ -1,0 +1,53 @@
+<!doctype html>
+<html>
+
+<head>
+    <title>05.axios取消请求</title>
+
+</head>
+
+
+<body>
+
+    <div>
+
+    </div>
+
+</body>
+<script>
+    //  控制台 console.log时浅色的字段表示什么意思  可枚举的属性颜色较亮。不可枚举的属性会变成浅色。
+
+    // for in 是否可枚举？
+    class Person {
+        constructor() {
+            this.age = 22
+            this.name = 'wang'
+        }
+
+        getAge() {
+            return this.age
+        }
+    }
+
+    Person.prototype.getName = function () {
+        return this.name
+    }
+
+    const p = new Person()
+    // getName 可枚举
+    // getAge 不可枚举 
+
+    // 输出 getName
+    for (let key in Person.prototype) {
+        console.log(key)
+    }
+
+    // 输出 ['constructor', 'getAge', 'getName']
+    console.log(Object.getOwnPropertyNames(Person.prototype))
+
+    // 检查是否可枚举
+    const getAgeDesc = Object.getOwnPropertyDescriptor(Person.prototype, 'getAge')
+    console.log(getAgeDesc)
+</script>
+
+</html>

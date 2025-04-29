@@ -1,0 +1,51 @@
+<!doctype html>
+<html>
+
+<head>
+    <title>05.axios取消请求</title>
+
+</head>
+<script src="./dist/axios.js"></script>
+
+<body>
+
+    <div>
+
+    </div>
+
+</body>
+<script>
+    // 如果我在 axios请求加了请求拦截器1 请求拦截器2 响应拦截器1 响应拦截2，分别在请求拦截器1和请求拦截器里面去取消请求，效果如何？
+    // 问：axios取消请求 是不发送 网络请求，但是要走完所有的请求拦截器，还是直接从当前的promise停掉？
+    // 答：axios取消请求 是不发送 网络请求
+    let stopRequest;
+    axios.interceptors.request.use((config) => {
+        console.log('请求拦截2')
+
+        return config
+    }, () => {
+
+    })
+
+    axios.interceptors.request.use((config) => {
+        console.log('请求拦截1')
+        stopRequest('手动停止')
+        return config
+    }, () => {
+
+    })
+
+
+    axios.post('http://localhost:3000', {}, {
+        cancelToken: new axios.CancelToken(cancel => {
+            stopRequest = cancel;
+        })
+    }).then(res => {
+
+    }).catch(err => {
+        console.log(err)
+    })
+
+</script>
+
+</html>

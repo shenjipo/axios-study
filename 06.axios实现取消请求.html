@@ -1,0 +1,183 @@
+<!doctype html>
+<html>
+
+<head>
+    <title>05.axios取消请求</title>
+
+</head>
+<script src="./dist/axios.js"></script>
+
+<body>
+
+    <div>
+
+    </div>
+
+</body>
+<script>
+    class Interceptors {
+        constructor() {
+            this.handlers = []
+        }
+
+        use(fulfilled, rejected) {
+            this.handlers.push({
+                fulfilled: fulfilled,
+                rejected: rejected
+            })
+        }
+    }
+
+    class Axios {
+        constructor(config) {
+            this.config = config
+            this.interceptors = {
+                request: new Interceptors(),
+                response: new Interceptors()
+            }
+        }
+
+        request(config) {
+            const chains = [this.dispatchRequest, null]
+            let promise = Promise.resolve(this.config);
+
+
+            this.interceptors.request.handlers.forEach((interceptor) => {
+                chains.unshift(interceptor.fulfilled, interceptor.rejected);
+            });
+
+            this.interceptors.response.handlers.forEach((interceptor) => {
+                chains.push(interceptor.fulfilled, interceptor.rejected);
+            });
+
+            while (chains.length) {
+                promise = promise.then(chains.shift(), chains.shift())
+            }
+
+            return promise
+        }
+
+        dispatchRequest(config) {
+            const xhr = new xhrAdapter(config)
+            return xhr
+        }
+    }
+
+    class CancelToken {
+        constructor(executor) {
+            let _resovle
+            this.promise = new Promise((resolve, reject) => {
+                _resovle = resolve
+            })
+
+            executor((message) => {
+                _resovle(message)
+            })
+        }
+    }
+
+    const isXHRAdapterSupported = typeof XMLHttpRequest !== 'undefined';
+    const xhrAdapter = isXHRAdapterSupported && function (config) {
+        return new Promise(function dispatchXhrRequest(resolve, reject) {
+
+            let request = new XMLHttpRequest();
+            request.open(config.method, config.url, true);
+
+            request.onloadend = function onloadend() {
+                const response = {
+                    data: request.responseText,
+                    status: request.status,
+                    statusText: request.statusText,
+                }
+                console.log('onloadend')
+                resolve(response)
+            };
+
+            request.onerror = function handleError() {
+                reject('xhr onerror!');
+                request = null;
+            };
+
+            request.ontimeout = function handleTimeout() {
+                reject('xhr ontimeout');
+                request = null;
+            };
+
+            // 判断取消请求的promise
+            if (config.cancelToken) {
+                config.cancelToken.promise.then(reason => {
+                    if (!request) {
+                        return;
+                    }
+                    reject(reason)
+                    console.log('停止请求!', reason)
+                    request.abort()
+                    request = null
+                })
+             
+            }
+
+            request.send({})
+        })
+    }
+
+    let stopRequest = null
+
+    const axios = new Axios({
+        method: 'post',
+        url: 'http://localhost:3000',
+        cancelToken: new CancelToken(cancel => {
+            stopRequest = cancel
+        }),
+    })
+
+    axios.interceptors.request.use((config) => {
+        console.log('请求拦截1,', config)
+        stopRequest('手动停止')
+        return config
+    }, () => {
+        console.log('请求拦截1失败')
+        return Promise.reject()
+    })
+
+    axios.interceptors.request.use((config) => {
+        console.log('请求拦截2,用时2s', config)
+        return new Promise((resolve, reject) => {
+            setTimeout(() => {
+                resolve(config)
+            }, 2000)
+        })
+    }, () => {
+        console.log('请求拦截2失败')
+        return Promise.reject()
+    })
+
+    axios.interceptors.response.use((data) => {
+        console.log('响应拦截1,用时1s', data)
+        return new Promise((resolve, reject) => {
+            setTimeout(() => {
+                resolve(data)
+            }, 2000)
+        })
+    }, (err) => {
+        console.log('响应异常拦截 1')
+        return Promise.reject(err)
+    })
+
+    axios.interceptors.response.use((config) => {
+        console.log('响应拦截2')
+        return config
+    }, (err) => {
+        console.log('响应异常拦截 2')
+        return Promise.reject(err)
+    })
+
+    axios.request().then(res => {
+        console.log(`响应数据= `, res)
+    }).catch(err => {
+        console.log('err=', err)
+    })
+
+</script>
+
+</html>
