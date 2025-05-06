@@ -63,34 +63,34 @@
     }
 
     const isXHRAdapterSupported = typeof XMLHttpRequest !== 'undefined';
-    const xhrAdapter = isXHRAdapterSupported && function (config) {
-        return new Promise(function dispatchXhrRequest(resolve, reject) {
+const xhrAdapter = isXHRAdapterSupported && function (config) {
+    return new Promise(function dispatchXhrRequest(resolve, reject) {
 
-            let request = new XMLHttpRequest();
-            request.open(config.method, config.url, true);
+        let request = new XMLHttpRequest();
+        request.open(config.method, config.url, true);
 
-            request.onloadend = function onloadend() {
-                const response = {
-                    data: request.responseText,
-                    status: request.status,
-                    statusText: request.statusText,
-                }
-                resolve(response)
-            };
+        request.onloadend = function onloadend() {
+            const response = {
+                data: request.responseText,
+                status: request.status,
+                statusText: request.statusText,
+            }
+            resolve(response)
+        };
 
-            request.onerror = function handleError() {
-                reject('xhr onerror!');
-                request = null;
-            };
+        request.onerror = function handleError() {
+            reject('xhr onerror!');
+            request = null;
+        };
 
-            request.ontimeout = function handleTimeout() {
-                reject('xhr ontimeout');
-                request = null;
-            };
+        request.ontimeout = function handleTimeout() {
+            reject('xhr ontimeout');
+            request = null;
+        };
 
-            request.send({})
-        })
-    }
+        request.send({})
+    })
+}
 
 
     const axios = new Axios({ method: 'post', url: 'http://localhost:3000' })

@@ -56,12 +56,12 @@ function createAxiosInstance(config) {
     const context = new Axios(config)
     const instance = Axios.prototype.request.bind(context)
 
-    // Object.getOwnPropertyNames(Axios.prototype) 与 Obeject.keys区别
     Object.getOwnPropertyNames(Axios.prototype).forEach(key => {
-        console.log(key)
         instance[key] = Axios.prototype[key].bind(context)
     })
-
+    // createInstance最终是希望拿到一个Function，这个Function指向Axios.prototype.request，
+    // 这个Function还会有Axios.prototype上的每个方法作为静态方法，
+    // 且这些方法的上下文(this)都是指向同一个对象。
     return instance
 }
 

@@ -40,7 +40,8 @@ function getAdapter(adapters) {
         nameOrAdapter = adapters[i];
 
         adapter = nameOrAdapter;
-
+        // 如果 adapter为null和false，表明在当前环境下此默认适配器不可使用
+        // 如果adapter为function，表明用户自定义了适配器
         if (adapter !== null && adapter !== false && typeof adapter !== 'function') {
             adapter = knownAdapters[String(nameOrAdapter).toLowerCase()];
 

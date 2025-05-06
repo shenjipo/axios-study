@@ -36,15 +36,15 @@
     })
 
 
-    axios.post('http://localhost:3000', {}, {
-        cancelToken: new axios.CancelToken(cancel => {
-            stopRequest = cancel;
-        })
-    }).then(res => {
-
-    }).catch(err => {
-        console.log(err)
+axios.post('http://localhost:3000', {}, {
+    cancelToken: new axios.CancelToken(cancel => {
+        stopRequest = cancel;
     })
+}).then(res => {
+
+}).catch(err => {
+    console.log(err)
+})
 
 </script>
 

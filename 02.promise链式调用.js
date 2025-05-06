@@ -28,4 +28,5 @@ class People {
     }
 }
 
+// (等待1s) -> 输出 whr eat apple -> (等待5s) -> 输出 whr eat durian
 new People('whr').sleep(1000).eat('apple').sleep(5000).eat('durian');
